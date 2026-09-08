@@ -28,6 +28,7 @@ internal class ClapTelemetry {
     private var peakRms = 0.0
     private var baseline = 0.0
     private var zcr = 0.0
+    private var zcrPeak = 0.0
     private var peakAtMillis = 0L
     private var decayAtMillis = NOT_OBSERVED
     private var elevatedEndedAtMillis = NOT_OBSERVED
@@ -37,11 +38,13 @@ internal class ClapTelemetry {
     /** One measurement runs at a time, which also bounds how much this can ever print. */
     val isMeasuring: Boolean get() = measuring
 
+    @Suppress("LongParameterList")
     fun peakObserved(
         nowMillis: Long,
         peakRms: Double,
         baseline: Double,
         zcr: Double,
+        zcrPeak: Double,
         verdict: ClapVerdict,
     ) {
         measuring = true
@@ -49,6 +52,7 @@ internal class ClapTelemetry {
         this.peakRms = peakRms
         this.baseline = baseline
         this.zcr = zcr
+        this.zcrPeak = zcrPeak
         peakAtMillis = nowMillis
         decayAtMillis = NOT_OBSERVED
         elevatedEndedAtMillis = NOT_OBSERVED
@@ -92,7 +96,7 @@ internal class ClapTelemetry {
             String.format(
                 Locale.US,
                 "verdict=%-20s peakRms=%7.0f baseline=%6.0f riseRatio=%5.1f " +
-                    "decayMs=%4d elevatedMs=%4d zcr=%.4f",
+                    "decayMs=%4d elevatedMs=%4d zcr=%.4f zcrPeak=%.4f",
                 verdict.name,
                 peakRms,
                 baseline,
@@ -100,6 +104,7 @@ internal class ClapTelemetry {
                 decayMs,
                 elevatedUntil - peakAtMillis,
                 zcr,
+                zcrPeak,
             ),
         )
     }

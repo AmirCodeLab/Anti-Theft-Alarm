@@ -160,11 +160,6 @@ pauses the same way, but no notification is posted in that path — the pause is
 the app is next opened. The post-reboot notice is posted by the boot receiver, and nothing
 equivalent runs on a plain process restart.
 
-**The home-screen footnote overstates what dismissing the notice does.** It says that swiping
-the ongoing notice away stops the watching. On Android 14 and later a user can dismiss a
-foreground service's notification, but doing so does not stop the service; on earlier versions
-the notice cannot be swiped at all. The service stops only when nothing is armed.
-
 **Motion detection is a fixed threshold.** A phone lifted from a table exceeds two metres per
 second squared away from gravity on two consecutive samples; a phone on a surface that is itself
 moving — a car, a train — will trigger it.

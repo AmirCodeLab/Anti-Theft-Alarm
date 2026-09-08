@@ -7,7 +7,7 @@
     <string name="home_subhead_armed">Guard is watching your phone right now.</string>
     <string name="home_subhead_disarmed">Turn on a feature below to start watching.</string>
     <string name="home_stop_alarm">Stop alarm</string>
-    <string name="home_footnote">Guard keeps a quiet notice in your status bar. That notice is what lets it keep watching while your screen is off — swipe it away and the watching stops.</string>
+    <string name="home_footnote">While protection is on, Guard keeps a quiet notice in your status bar. That notice is what lets it keep watching while your screen is locked.</string>
 
     <!-- Features -->
     <string name="feature_charger_title">Charger alerts</string>
