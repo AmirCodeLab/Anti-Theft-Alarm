@@ -8,6 +8,11 @@ import com.antitheft.guard.domain.repository.SettingsRepository
 import com.antitheft.guard.service.GuardServiceController
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -26,23 +31,34 @@ class HomeViewModel(
 
     val isAlarmPlaying: StateFlow<Boolean> = alarmPlayer.isPlaying
 
-    fun setChargerAlertsEnabled(enabled: Boolean) = arm {
+    init {
+        // Settings are written first and the service follows, so every route into being armed is
+        // covered by one rule: a flipped switch, an app opened after a reboot, or a microphone
+        // permission granted over in system Settings while the app sat in the background.
+        settingsRepository.settings
+            .map { it.isArmed }
+            .distinctUntilChanged()
+            .filter { armed -> armed }
+            .onEach { serviceController.startIfArmed() }
+            .launchIn(viewModelScope)
+    }
+
+    fun setChargerAlertsEnabled(enabled: Boolean) = persist {
         settingsRepository.setChargerAlertsEnabled(enabled)
     }
 
-    fun setMotionDetectionEnabled(enabled: Boolean) = arm {
+    fun setMotionDetectionEnabled(enabled: Boolean) = persist {
         settingsRepository.setMotionDetectionEnabled(enabled)
+    }
+
+    fun setClapDetectionEnabled(enabled: Boolean) = persist {
+        settingsRepository.setClapDetectionEnabled(enabled)
     }
 
     fun stopAlarm() = serviceController.stopAlarm()
 
-    private fun arm(persist: suspend () -> Unit) {
-        viewModelScope.launch {
-            // Persist first: settings are the source of truth, so the service must never be asked
-            // to start before the state it reads has been written.
-            persist()
-            serviceController.startIfArmed()
-        }
+    private fun persist(write: suspend () -> Unit) {
+        viewModelScope.launch { write() }
     }
 
     private companion object {

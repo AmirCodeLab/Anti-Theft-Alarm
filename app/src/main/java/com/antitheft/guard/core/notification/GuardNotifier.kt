@@ -113,6 +113,21 @@ class GuardNotifier(private val context: Context) {
         notify(id, notification)
     }
 
+    /** A quiet statement of fact about protection itself, not about anything the phone saw. */
+    fun showNotice(id: Int, title: String, text: String, contentIntent: PendingIntent) {
+        val notification = NotificationCompat.Builder(context, CHANNEL_ALERTS)
+            .setSmallIcon(R.drawable.ic_shield)
+            .setContentTitle(title)
+            .setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+            .setContentIntent(contentIntent)
+            .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setCategory(NotificationCompat.CATEGORY_STATUS)
+            .build()
+        notify(id, notification)
+    }
+
     fun cancel(id: Int) = manager.cancel(id)
 
     private fun notify(id: Int, notification: Notification) {
@@ -127,6 +142,7 @@ class GuardNotifier(private val context: Context) {
 
     companion object {
         const val ONGOING_ID = 1
+        const val NOTICE_ID = 2
 
         private const val CHANNEL_STATUS = "guard_status"
         private const val CHANNEL_ALERTS = "guard_alerts"

@@ -2,15 +2,12 @@ package com.antitheft.guard.service
 
 import android.app.Service
 import android.content.Intent
-import android.content.pm.ServiceInfo
-import android.os.Build
 import android.os.IBinder
 import androidx.core.app.ServiceCompat
 import com.antitheft.guard.R
 import com.antitheft.guard.core.audio.AlarmPlayer
 import com.antitheft.guard.core.notification.GuardNotifier
 import com.antitheft.guard.detector.ThreatDetector
-import com.antitheft.guard.domain.model.DetectorId
 import com.antitheft.guard.domain.model.GuardEvent
 import com.antitheft.guard.domain.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
@@ -43,7 +40,7 @@ class GuardService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        startInForeground()
+        enterForeground(getString(R.string.notification_status_starting), NO_DETECTOR_TYPES)
         observeSettings()
         observeThreats()
     }
@@ -66,34 +63,11 @@ class GuardService : Service() {
         super.onDestroy()
     }
 
-    private fun startInForeground() {
-        ServiceCompat.startForeground(
-            this,
-            GuardNotifier.ONGOING_ID,
-            notifier.ongoingNotification(
-                text = getString(R.string.notification_status_starting),
-                contentIntent = openAppIntent(),
-                turnOffIntent = disarmIntent(),
-            ),
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
-            } else {
-                0
-            },
-        )
-    }
-
     private fun observeSettings() {
         settingsRepository.settings
             .onEach { settings ->
                 if (settings.isArmed) {
-                    notifier.showOngoing(
-                        notifier.ongoingNotification(
-                            text = statusText(settings),
-                            contentIntent = openAppIntent(),
-                            turnOffIntent = disarmIntent(),
-                        ),
-                    )
+                    enterForeground(statusText(settings), detectors.typesRequiredBy(settings.armedDetectors))
                 } else {
                     stopSelf()
                 }
@@ -111,14 +85,31 @@ class GuardService : Service() {
             .launchIn(scope)
     }
 
+    /**
+     * Re-declared on every settings change so the capabilities claimed always match what is armed.
+     * Android takes a dim view of a service that holds the microphone type while nothing is
+     * listening, and rightly so.
+     */
+    private fun enterForeground(text: String, detectorTypes: Int) {
+        ServiceCompat.startForeground(
+            this,
+            GuardNotifier.ONGOING_ID,
+            notifier.ongoingNotification(
+                text = text,
+                contentIntent = openAppIntent(),
+                turnOffIntent = disarmIntent(),
+            ),
+            foregroundTypeMask(detectorTypes),
+        )
+    }
+
     private fun handleEvent(event: GuardEvent) {
         val copy = event.alertCopy()
-        val id = ALERT_ID_BASE + event.source.ordinal
         when (event) {
-            GuardEvent.MotionDetected -> {
+            GuardEvent.MotionDetected, GuardEvent.ClapDetected -> {
                 alarmPlayer.start()
                 notifier.showAlarmAlert(
-                    id = id,
+                    id = ALARM_ALERT_ID,
                     title = getString(copy.title),
                     text = getString(copy.text),
                     contentIntent = openAppIntent(),
@@ -128,7 +119,7 @@ class GuardService : Service() {
             }
 
             GuardEvent.ChargerConnected, GuardEvent.ChargerDisconnected -> notifier.showAlert(
-                id = id,
+                id = PASSIVE_ALERT_ID_BASE + event.source.ordinal,
                 title = getString(copy.title),
                 text = getString(copy.text),
                 contentIntent = openAppIntent(),
@@ -139,10 +130,13 @@ class GuardService : Service() {
     /** Takes the alert down with the noise, so the stop control never outlives the alarm. */
     private fun silenceAlarm() {
         alarmPlayer.stop()
-        notifier.cancel(ALERT_ID_BASE + DetectorId.MOTION.ordinal)
+        notifier.cancel(ALARM_ALERT_ID)
     }
 
     private companion object {
-        const val ALERT_ID_BASE = 100
+        /** One alarm can sound at a time, so one notification carries its stop control. */
+        const val ALARM_ALERT_ID = 100
+
+        const val PASSIVE_ALERT_ID_BASE = 200
     }
 }

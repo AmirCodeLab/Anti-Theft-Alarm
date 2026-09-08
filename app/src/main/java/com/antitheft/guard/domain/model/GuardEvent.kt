@@ -19,4 +19,8 @@ sealed interface GuardEvent {
     data object MotionDetected : GuardEvent {
         override val source = DetectorId.MOTION
     }
+
+    data object ClapDetected : GuardEvent {
+        override val source = DetectorId.CLAP
+    }
 }

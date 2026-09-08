@@ -11,6 +11,8 @@ interface SettingsRepository {
 
     suspend fun setMotionDetectionEnabled(enabled: Boolean)
 
+    suspend fun setClapDetectionEnabled(enabled: Boolean)
+
     /** Disarms every feature at once, which is how the ongoing notification's "Turn off" works. */
     suspend fun disableAll()
 }

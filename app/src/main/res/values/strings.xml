@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Guard</string>
+    <string name="app_name">Anti-Theft Alarm</string>
 
     <!-- Home -->
     <string name="home_headline_armed">Protection is on</string>
@@ -14,6 +14,13 @@
     <string name="feature_charger_description">Get an alert the moment your phone is plugged in or unplugged.</string>
     <string name="feature_motion_title">Motion detection</string>
     <string name="feature_motion_description">Sound a loud alarm if someone picks your phone up or moves it.</string>
+    <string name="feature_clap_title">Clap detection</string>
+    <string name="feature_clap_description">Sound the alarm when you clap, so you can find your phone. The microphone only listens for the sound of a clap — nothing is recorded, saved or sent anywhere. Android shows a microphone dot in your status bar while this is on.</string>
+
+    <!-- Clap detection paused -->
+    <string name="clap_paused_awaiting_app_open">Paused. Android will not let Guard open the microphone by itself after a restart, so it waits until you open the app.</string>
+    <string name="clap_paused_microphone_denied">Not listening. Guard needs permission to use the microphone before it can hear a clap.</string>
+    <string name="clap_paused_open_settings">Open settings</string>
 
     <!-- Notification channels -->
     <string name="channel_status_name">Protection status</string>
@@ -28,6 +35,7 @@
     <string name="notification_action_stop_alarm">Stop alarm</string>
     <string name="status_watching_charger">Watching the charger</string>
     <string name="status_watching_motion">Watching for movement</string>
+    <string name="status_watching_clap">Listening for a clap</string>
     <string name="status_separator">, </string>
 
     <!-- Alerts -->
@@ -37,7 +45,16 @@
     <string name="alert_charger_disconnected_text">Your phone was unplugged.</string>
     <string name="alert_motion_title">Your phone was moved</string>
     <string name="alert_motion_text">The alarm is sounding. Tap to open Guard.</string>
+    <string name="alert_clap_title">Guard heard a clap</string>
+    <string name="alert_clap_text">The alarm is sounding. Tap to open Guard.</string>
+
+    <!-- Notices about protection itself -->
+    <string name="notice_clap_paused_title">Clap detection needs turning back on</string>
+    <string name="notice_clap_paused_text">Charger and motion protection restarted after your phone rebooted. Android does not let Guard open the microphone on its own, so open Guard to start listening for claps again.</string>
+    <string name="notice_clap_microphone_title">Clap detection is not listening</string>
+    <string name="notice_clap_microphone_text">Guard no longer has permission to use the microphone. Your other protection is unaffected. Open Guard to grant it again.</string>
 
     <!-- Declared to Google Play to justify the special-use foreground service type. -->
     <string name="fgs_special_use_subtype">Anti-theft monitoring. Guard watches power state and device sensors while the owner is away and must keep running with the screen off to raise an alarm the moment the phone is disturbed.</string>
+
 </resources>

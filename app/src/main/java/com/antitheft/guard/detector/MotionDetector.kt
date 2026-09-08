@@ -40,13 +40,16 @@ class MotionDetector(private val context: Context) : ThreatDetector {
         return callbackFlow {
             val armedAt = SystemClock.elapsedRealtime()
             var consecutiveOverThreshold = 0
-            var lastEmittedAt = 0L
+            // Null until the first emission: "never fired" is not the same as "fired at time zero",
+            // which would swallow the first event on a device armed seconds after booting.
+            var lastEmittedAt: Long? = null
 
             val listener = object : SensorEventListener {
                 override fun onSensorChanged(event: SensorEvent) {
                     val now = SystemClock.elapsedRealtime()
                     if (now - armedAt < ARMING_GRACE_MILLIS) return
-                    if (now - lastEmittedAt < COOLDOWN_MILLIS) return
+                    val previous = lastEmittedAt
+                    if (previous != null && now - previous < COOLDOWN_MILLIS) return
 
                     // Deviation of the acceleration magnitude from gravity. Taking the magnitude
                     // removes the need for a filter and works at any orientation, so the phone can

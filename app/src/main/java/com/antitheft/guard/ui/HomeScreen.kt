@@ -9,21 +9,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.antitheft.guard.R
+import com.antitheft.guard.domain.model.ClapPauseReason
 import com.antitheft.guard.domain.model.ProtectionSettings
+import com.antitheft.guard.ui.components.ClapPauseNotice
 import com.antitheft.guard.ui.components.ProtectionToggleRow
 import com.antitheft.guard.ui.components.StatusBeacon
 import com.antitheft.guard.ui.components.StopAlarmButton
-import com.antitheft.guard.ui.theme.GuardTheme
 
 @Composable
 fun HomeScreen(
@@ -31,6 +30,8 @@ fun HomeScreen(
     isAlarmPlaying: Boolean,
     onChargerAlertsChange: (Boolean) -> Unit,
     onMotionDetectionChange: (Boolean) -> Unit,
+    onClapDetectionChange: (Boolean) -> Unit,
+    onOpenAppSettings: () -> Unit,
     onStopAlarm: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -89,6 +90,20 @@ fun HomeScreen(
             onCheckedChange = onMotionDetectionChange,
         )
 
+        Spacer(Modifier.height(12.dp))
+
+        ProtectionToggleRow(
+            title = stringResource(R.string.feature_clap_title),
+            description = stringResource(R.string.feature_clap_description),
+            checked = settings.clapDetectionEnabled,
+            onCheckedChange = onClapDetectionChange,
+            footer = if (settings.clapPauseReason == ClapPauseReason.NONE) {
+                null
+            } else {
+                { ClapPauseNotice(settings.clapPauseReason, onOpenAppSettings) }
+            },
+        )
+
         Spacer(Modifier.height(24.dp))
 
         Text(
@@ -101,37 +116,5 @@ fun HomeScreen(
         )
 
         Spacer(Modifier.height(40.dp))
-    }
-}
-
-@Preview
-@Composable
-private fun HomeScreenArmedPreview() {
-    GuardTheme {
-        Surface(color = MaterialTheme.colorScheme.background) {
-            HomeScreen(
-                settings = ProtectionSettings(chargerAlertsEnabled = true, motionDetectionEnabled = true),
-                isAlarmPlaying = false,
-                onChargerAlertsChange = {},
-                onMotionDetectionChange = {},
-                onStopAlarm = {},
-            )
-        }
-    }
-}
-
-@Preview
-@Composable
-private fun HomeScreenAlarmingPreview() {
-    GuardTheme {
-        Surface(color = MaterialTheme.colorScheme.background) {
-            HomeScreen(
-                settings = ProtectionSettings(motionDetectionEnabled = true),
-                isAlarmPlaying = true,
-                onChargerAlertsChange = {},
-                onMotionDetectionChange = {},
-                onStopAlarm = {},
-            )
-        }
     }
 }
