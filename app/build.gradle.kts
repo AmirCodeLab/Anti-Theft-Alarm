@@ -36,6 +36,8 @@ android {
 
     buildFeatures {
         compose = true
+        // Carries DEBUG, which gates the clap telemetry out of release builds.
+        buildConfig = true
     }
 }
 

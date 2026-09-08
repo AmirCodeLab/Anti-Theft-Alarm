@@ -1,5 +1,6 @@
 package com.antitheft.guard.detector
 
+import com.antitheft.guard.BuildConfig
 import kotlin.math.max
 
 /**
@@ -10,20 +11,27 @@ import kotlin.math.max
  * quiet, then suddenly far above the floor, then quiet again. The final requirement is what
  * separates a clap from music, a slammed door or someone talking loudly, none of which decay
  * within a few tens of milliseconds.
- *
- * Pure arithmetic over RMS levels, with no Android types, so the thresholds can be reasoned about
- * and exercised on their own.
  */
 internal class ClapAnalyzer {
 
     private var baseline = 0.0
     private var previousRms = 0.0
     private var windowsLeftToDecay = 0
+
     /** Null until the first clap: "never fired" is not the same as "fired at time zero". */
     private var lastFiredAtMillis: Long? = null
 
-    /** Feeds one window's RMS in, and returns true when that window completed a clap. */
-    fun accept(rms: Double, nowMillis: Long): Boolean {
+    private val telemetry =
+        if (BuildConfig.DEBUG && CLAP_TELEMETRY_ENABLED) ClapTelemetry() else null
+
+    /**
+     * Feeds one window in, and returns true when that window completed a clap. Takes the raw
+     * window rather than a level so the zero-crossing rate can be measured on the peak itself;
+     * neither the samples nor anything derived from them is retained past the call.
+     */
+    fun accept(window: ShortArray, length: Int, nowMillis: Long): Boolean {
+        val rms = rms(window, length)
+
         if (baseline == 0.0) {
             // First window of the session: seed the floor rather than treat silence as a spike.
             baseline = rms
@@ -32,20 +40,27 @@ internal class ClapAnalyzer {
         }
 
         val floor = max(baseline, MIN_BASELINE_RMS)
+        val triggerLine = floor * ONSET_FACTOR
+        val decayLine = floor * DECAYED_TO_FACTOR
+        telemetry?.windowObserved(nowMillis, rms, triggerLine, decayLine)
+
         var clapped = false
 
         if (windowsLeftToDecay > 0) {
             windowsLeftToDecay--
             // The baseline stays frozen here: folding the clap itself into the floor would raise
             // it enough to swallow the very detection in progress.
-            if (rms < floor * DECAYED_TO_FACTOR) {
+            if (rms < decayLine) {
                 clapped = true
                 lastFiredAtMillis = nowMillis
                 windowsLeftToDecay = 0
+                telemetry?.resolved(ClapVerdict.FIRED)
+            } else if (windowsLeftToDecay == 0) {
+                telemetry?.resolved(ClapVerdict.DECAY_TOO_SLOW)
             }
         } else {
             val quietBefore = previousRms < floor * QUIET_BEFORE_FACTOR
-            val loudNow = rms > floor * ONSET_FACTOR
+            val loudNow = rms > triggerLine
             val lastFired = lastFiredAtMillis
             val pastCooldown = lastFired == null || nowMillis - lastFired >= COOLDOWN_MILLIS
 
@@ -54,10 +69,42 @@ internal class ClapAnalyzer {
             } else {
                 baseline = baseline * (1 - BASELINE_SMOOTHING) + rms * BASELINE_SMOOTHING
             }
+
+            if (telemetry != null) {
+                recordPeak(telemetry, window, length, nowMillis, rms, floor, quietBefore, loudNow, pastCooldown)
+            }
         }
 
         previousRms = rms
         return clapped
+    }
+
+    /**
+     * Opens a measurement for anything that rose above the noise, whether or not it went on to
+     * fire. The bar reuses the existing quiet-before line rather than introducing a threshold of
+     * its own, so this cannot drift away from what the detector actually does.
+     */
+    @Suppress("LongParameterList")
+    private fun recordPeak(
+        telemetry: ClapTelemetry,
+        window: ShortArray,
+        length: Int,
+        nowMillis: Long,
+        rms: Double,
+        floor: Double,
+        quietBefore: Boolean,
+        loudNow: Boolean,
+        pastCooldown: Boolean,
+    ) {
+        if (telemetry.isMeasuring || rms <= floor * QUIET_BEFORE_FACTOR) return
+
+        val verdict = when {
+            !loudNow -> ClapVerdict.TOO_QUIET
+            !quietBefore -> ClapVerdict.NO_PRECEDING_SILENCE
+            !pastCooldown -> ClapVerdict.IN_COOLDOWN
+            else -> ClapVerdict.PENDING
+        }
+        telemetry.peakObserved(nowMillis, rms, floor, zeroCrossingRate(window, length), verdict)
     }
 
     private companion object {

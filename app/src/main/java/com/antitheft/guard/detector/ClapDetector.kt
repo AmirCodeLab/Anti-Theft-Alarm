@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlin.math.sqrt
 
 /**
  * Listens for a clap.
@@ -64,7 +63,7 @@ class ClapDetector(private val context: Context) : ThreatDetector {
                     while (isActive) {
                         val read = recorder.read(window, 0, window.size)
                         if (read <= 0) continue
-                        if (analyzer.accept(rms(window, read), SystemClock.elapsedRealtime())) {
+                        if (analyzer.accept(window, read, SystemClock.elapsedRealtime())) {
                             trySend(GuardEvent.ClapDetected)
                         }
                     }
@@ -115,15 +114,6 @@ class ClapDetector(private val context: Context) : ThreatDetector {
         ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
             PackageManager.PERMISSION_GRANTED
 
-    private fun rms(samples: ShortArray, length: Int): Double {
-        var sumOfSquares = 0.0
-        for (index in 0 until length) {
-            val sample = samples[index].toDouble()
-            sumOfSquares += sample * sample
-        }
-        return sqrt(sumOfSquares / length)
-    }
-
     private companion object {
         const val TAG = "ClapDetector"
 
@@ -140,3 +130,12 @@ class ClapDetector(private val context: Context) : ThreatDetector {
         const val ENCODING = AudioFormat.ENCODING_PCM_16BIT
     }
 }
+
+/**
+ * Single switch for the clap telemetry: set to false and every line below goes away. Debug builds
+ * are gated separately in [ClapAnalyzer], so a release build never logs regardless of this value.
+ */
+internal const val CLAP_TELEMETRY_ENABLED = true
+
+/** One tag for every telemetry line, so a single logcat filter catches all of them. */
+internal const val CLAP_TELEMETRY_TAG = "ClapTelemetry"
