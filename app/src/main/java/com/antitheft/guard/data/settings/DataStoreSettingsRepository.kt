@@ -29,11 +29,16 @@ class DataStoreSettingsRepository(context: Context) : SettingsRepository {
         .map { preferences ->
             ProtectionSettings(
                 chargerAlertsEnabled = preferences[CHARGER_ALERTS] == true,
+                motionDetectionEnabled = preferences[MOTION_DETECTION] == true,
             )
         }
 
     override suspend fun setChargerAlertsEnabled(enabled: Boolean) {
         dataStore.edit { preferences -> preferences[CHARGER_ALERTS] = enabled }
+    }
+
+    override suspend fun setMotionDetectionEnabled(enabled: Boolean) {
+        dataStore.edit { preferences -> preferences[MOTION_DETECTION] = enabled }
     }
 
     override suspend fun disableAll() {
@@ -44,5 +49,6 @@ class DataStoreSettingsRepository(context: Context) : SettingsRepository {
 
     private companion object {
         val CHARGER_ALERTS = booleanPreferencesKey("charger_alerts_enabled")
+        val MOTION_DETECTION = booleanPreferencesKey("motion_detection_enabled")
     }
 }

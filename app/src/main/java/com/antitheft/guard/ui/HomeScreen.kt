@@ -22,12 +22,16 @@ import com.antitheft.guard.R
 import com.antitheft.guard.domain.model.ProtectionSettings
 import com.antitheft.guard.ui.components.ProtectionToggleRow
 import com.antitheft.guard.ui.components.StatusBeacon
+import com.antitheft.guard.ui.components.StopAlarmButton
 import com.antitheft.guard.ui.theme.GuardTheme
 
 @Composable
 fun HomeScreen(
     settings: ProtectionSettings,
+    isAlarmPlaying: Boolean,
     onChargerAlertsChange: (Boolean) -> Unit,
+    onMotionDetectionChange: (Boolean) -> Unit,
+    onStopAlarm: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -64,11 +68,25 @@ fun HomeScreen(
 
         Spacer(Modifier.height(40.dp))
 
+        if (isAlarmPlaying) {
+            StopAlarmButton(onClick = onStopAlarm)
+            Spacer(Modifier.height(24.dp))
+        }
+
         ProtectionToggleRow(
             title = stringResource(R.string.feature_charger_title),
             description = stringResource(R.string.feature_charger_description),
             checked = settings.chargerAlertsEnabled,
             onCheckedChange = onChargerAlertsChange,
+        )
+
+        Spacer(Modifier.height(12.dp))
+
+        ProtectionToggleRow(
+            title = stringResource(R.string.feature_motion_title),
+            description = stringResource(R.string.feature_motion_description),
+            checked = settings.motionDetectionEnabled,
+            onCheckedChange = onMotionDetectionChange,
         )
 
         Spacer(Modifier.height(24.dp))
@@ -77,7 +95,9 @@ fun HomeScreen(
             text = stringResource(R.string.home_footnote),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp),
         )
 
         Spacer(Modifier.height(40.dp))
@@ -90,8 +110,27 @@ private fun HomeScreenArmedPreview() {
     GuardTheme {
         Surface(color = MaterialTheme.colorScheme.background) {
             HomeScreen(
-                settings = ProtectionSettings(chargerAlertsEnabled = true),
+                settings = ProtectionSettings(chargerAlertsEnabled = true, motionDetectionEnabled = true),
+                isAlarmPlaying = false,
                 onChargerAlertsChange = {},
+                onMotionDetectionChange = {},
+                onStopAlarm = {},
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun HomeScreenAlarmingPreview() {
+    GuardTheme {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            HomeScreen(
+                settings = ProtectionSettings(motionDetectionEnabled = true),
+                isAlarmPlaying = true,
+                onChargerAlertsChange = {},
+                onMotionDetectionChange = {},
+                onStopAlarm = {},
             )
         }
     }

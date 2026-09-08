@@ -9,6 +9,8 @@ interface SettingsRepository {
 
     suspend fun setChargerAlertsEnabled(enabled: Boolean)
 
+    suspend fun setMotionDetectionEnabled(enabled: Boolean)
+
     /** Disarms every feature at once, which is how the ongoing notification's "Turn off" works. */
     suspend fun disableAll()
 }

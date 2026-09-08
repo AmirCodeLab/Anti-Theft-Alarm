@@ -1,8 +1,10 @@
 package com.antitheft.guard.di
 
+import com.antitheft.guard.core.audio.AlarmPlayer
 import com.antitheft.guard.core.notification.GuardNotifier
 import com.antitheft.guard.data.settings.DataStoreSettingsRepository
 import com.antitheft.guard.detector.ChargingDetector
+import com.antitheft.guard.detector.MotionDetector
 import com.antitheft.guard.detector.ThreatDetector
 import com.antitheft.guard.domain.repository.SettingsRepository
 import com.antitheft.guard.service.GuardServiceController
@@ -16,14 +18,16 @@ val appModule = module {
 
     single<SettingsRepository> { DataStoreSettingsRepository(androidContext()) }
     single { GuardNotifier(androidContext()) }
+    single { AlarmPlayer(androidContext()) }
     single { GuardServiceController(androidContext(), get()) }
 
     // The detector registry. Adding a feature means adding one line here and nothing else.
     single<List<ThreatDetector>> {
         listOf(
             ChargingDetector(androidContext()),
+            MotionDetector(androidContext()),
         )
     }
 
-    viewModel { HomeViewModel(get(), get()) }
+    viewModel { HomeViewModel(get(), get(), get()) }
 }

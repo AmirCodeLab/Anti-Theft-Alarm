@@ -44,22 +44,32 @@ class MainActivity : ComponentActivity() {
             GuardTheme {
                 val viewModel = koinViewModel<HomeViewModel>()
                 val settings by viewModel.settings.collectAsStateWithLifecycle()
+                val isAlarmPlaying by viewModel.isAlarmPlaying.collectAsStateWithLifecycle()
 
                 Surface(color = MaterialTheme.colorScheme.background) {
                     HomeScreen(
                         settings = settings,
+                        isAlarmPlaying = isAlarmPlaying,
                         onChargerAlertsChange = { enabled ->
-                            if (enabled) {
-                                withNotificationPermission { viewModel.setChargerAlertsEnabled(true) }
-                            } else {
-                                viewModel.setChargerAlertsEnabled(false)
-                            }
+                            onArm(enabled) { viewModel.setChargerAlertsEnabled(it) }
                         },
+                        onMotionDetectionChange = { enabled ->
+                            onArm(enabled) { viewModel.setMotionDetectionEnabled(it) }
+                        },
+                        onStopAlarm = viewModel::stopAlarm,
                         modifier = Modifier.windowInsetsPadding(WindowInsets.systemBars),
                     )
                 }
             }
         }
+    }
+
+    /**
+     * Arming needs permission to alert; disarming never does. Switching a feature on therefore
+     * waits for the answer, and switching it off goes straight through.
+     */
+    private fun onArm(enabled: Boolean, apply: (Boolean) -> Unit) {
+        if (enabled) withNotificationPermission { apply(true) } else apply(false)
     }
 
     /**

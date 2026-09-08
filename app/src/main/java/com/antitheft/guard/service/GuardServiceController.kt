@@ -22,4 +22,12 @@ class GuardServiceController(
         if (!settingsRepository.settings.first().isArmed) return
         ContextCompat.startForegroundService(context, Intent(context, GuardService::class.java))
     }
+
+    /**
+     * Silences a sounding alarm. This is a command to a service that is already running, not a
+     * request to stop it — protection stays exactly as armed as it was.
+     */
+    fun stopAlarm() {
+        context.startService(context.stopAlarmCommand())
+    }
 }

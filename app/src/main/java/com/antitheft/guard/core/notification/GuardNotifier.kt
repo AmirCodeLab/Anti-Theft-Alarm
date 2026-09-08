@@ -87,6 +87,34 @@ class GuardNotifier(private val context: Context) {
      * outcome here: the user is told what the switch needs when they arm a feature, and the
      * service's own foreground notice does not go through this path.
      */
+    /**
+     * The alert for an alarm that is actually sounding. Ongoing rather than dismissible, because
+     * it carries the stop control — losing it to a stray swipe would leave the phone shouting with
+     * no way to quiet it from the shade.
+     */
+    fun showAlarmAlert(
+        id: Int,
+        title: String,
+        text: String,
+        contentIntent: PendingIntent,
+        stopLabel: String,
+        stopIntent: PendingIntent,
+    ) {
+        val notification = NotificationCompat.Builder(context, CHANNEL_ALERTS)
+            .setSmallIcon(R.drawable.ic_shield)
+            .setContentTitle(title)
+            .setContentText(text)
+            .setContentIntent(contentIntent)
+            .setOngoing(true)
+            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .addAction(0, stopLabel, stopIntent)
+            .build()
+        notify(id, notification)
+    }
+
+    fun cancel(id: Int) = manager.cancel(id)
+
     private fun notify(id: Int, notification: Notification) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=

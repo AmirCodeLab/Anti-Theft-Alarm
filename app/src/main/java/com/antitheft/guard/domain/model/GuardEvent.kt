@@ -15,4 +15,8 @@ sealed interface GuardEvent {
     data object ChargerDisconnected : GuardEvent {
         override val source = DetectorId.CHARGING
     }
+
+    data object MotionDetected : GuardEvent {
+        override val source = DetectorId.MOTION
+    }
 }

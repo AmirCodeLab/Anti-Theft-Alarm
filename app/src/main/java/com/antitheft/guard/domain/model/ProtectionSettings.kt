@@ -6,10 +6,12 @@ package com.antitheft.guard.domain.model
  */
 data class ProtectionSettings(
     val chargerAlertsEnabled: Boolean = false,
+    val motionDetectionEnabled: Boolean = false,
 ) {
 
     val armedDetectors: Set<DetectorId> = buildSet {
         if (chargerAlertsEnabled) add(DetectorId.CHARGING)
+        if (motionDetectionEnabled) add(DetectorId.MOTION)
     }
 
     val isArmed: Boolean = armedDetectors.isNotEmpty()

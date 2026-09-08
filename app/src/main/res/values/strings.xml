@@ -6,11 +6,14 @@
     <string name="home_headline_disarmed">Protection is off</string>
     <string name="home_subhead_armed">Guard is watching your phone right now.</string>
     <string name="home_subhead_disarmed">Turn on a feature below to start watching.</string>
+    <string name="home_stop_alarm">Stop alarm</string>
     <string name="home_footnote">Guard keeps a quiet notice in your status bar. That notice is what lets it keep watching while your screen is off — swipe it away and the watching stops.</string>
 
     <!-- Features -->
     <string name="feature_charger_title">Charger alerts</string>
     <string name="feature_charger_description">Get an alert the moment your phone is plugged in or unplugged.</string>
+    <string name="feature_motion_title">Motion detection</string>
+    <string name="feature_motion_description">Sound a loud alarm if someone picks your phone up or moves it.</string>
 
     <!-- Notification channels -->
     <string name="channel_status_name">Protection status</string>
@@ -22,7 +25,9 @@
     <string name="notification_status_title">Protection is on</string>
     <string name="notification_status_starting">Starting up.</string>
     <string name="notification_action_turn_off">Turn off</string>
+    <string name="notification_action_stop_alarm">Stop alarm</string>
     <string name="status_watching_charger">Watching the charger</string>
+    <string name="status_watching_motion">Watching for movement</string>
     <string name="status_separator">, </string>
 
     <!-- Alerts -->
@@ -30,6 +35,8 @@
     <string name="alert_charger_connected_text">Your phone was plugged in.</string>
     <string name="alert_charger_disconnected_title">Charger disconnected</string>
     <string name="alert_charger_disconnected_text">Your phone was unplugged.</string>
+    <string name="alert_motion_title">Your phone was moved</string>
+    <string name="alert_motion_text">The alarm is sounding. Tap to open Guard.</string>
 
     <!-- Declared to Google Play to justify the special-use foreground service type. -->
     <string name="fgs_special_use_subtype">Anti-theft monitoring. Guard watches power state and device sensors while the owner is away and must keep running with the screen off to raise an alarm the moment the phone is disturbed.</string>
