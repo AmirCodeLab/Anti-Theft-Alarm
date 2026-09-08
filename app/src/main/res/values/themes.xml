@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <style name="Theme.AntiTheftAlarm" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- Only carries the app through to the first Compose frame; the palette lives in ui/theme. -->
+    <style name="Theme.Guard" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/marine</item>
+    </style>
 </resources>
